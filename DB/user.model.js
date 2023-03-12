@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     confirmed:{type:Boolean,default:false},
     role:{type:String,default:"user"},
     profilePic:String,
-    converPics:Array,
+    coverPics:Array,
     flowers:Array
 })
 userSchema.pre('save',function(next){

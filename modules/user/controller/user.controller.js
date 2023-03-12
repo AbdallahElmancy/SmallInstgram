@@ -1,6 +1,8 @@
 const userModel = require("../../../DB/user.model") 
 const sendEmail = require("../../../common/email")
 const jwt = require('jsonwebtoken');
+const becrypt = require('bcrypt');
+
 
 
 const {
@@ -52,4 +54,72 @@ try {
 
 
 }
-module.exports = {signUp,confirmPassword}
+
+const signIn = async(req,res)=>{
+try {
+   let {email, password}=req.body
+   let user = await userModel.findOne({email})
+   if(user){
+      becrypt.compare(password,user.password,function (err,result){
+         if (result) {
+            let token = jwt.sign({id:user._id,isLogin:true},process.env.JWTKEY)
+
+            res.status(StatusCodes.ACCEPTED).json({massage:"welcome",token})
+         }else{
+            res.status(StatusCodes.BAD_REQUEST).json({massage:"password is wrong"})
+         }
+      })
+   }else{
+      res.status(StatusCodes.BAD_REQUEST).json({massage:"user is not found"})
+   }
+} catch (error) {
+   res.status(StatusCodes.BAD_GATEWAY).json({massage:"the serverr error",error,statusErr:getReasonPhrase(StatusCodes.BAD_GATEWAY)})
+
+}
+}
+const updateName =async(req,res)=>{
+try {
+   let {userName} = req.body
+   let foundUser = await userModel.findByIdAndUpdate({_id:req.user._id},{userName},{new:true}).select("-password")
+      res.status(StatusCodes.ACCEPTED).json({massage:"user is update",foundUser})
+} catch (error) {
+   res.status(StatusCodes.BAD_GATEWAY).json({massage:"the serverr error",error,statusErr:getReasonPhrase(StatusCodes.BAD_GATEWAY)})
+
+}
+}
+const uploadProfilePic = async (req,res)=>{
+   try {
+      if (!req.file) {
+         res.status(StatusCodes.BAD_REQUEST).json({massage:"invalied image"})
+      }else{
+   
+         const imageURL =`${req.protocol}://${req.headers.host}/${req.file.path}`
+         const updateUser = await userModel.findByIdAndUpdate(req.user._id,{profilePic:imageURL},{new:true})
+         res.status(202).json({massage:"succes updated",updateUser})
+      }
+   } catch (error) {
+      res.status(StatusCodes.BAD_GATEWAY).json({massage:"the serverr error",error,statusErr:getReasonPhrase(StatusCodes.BAD_GATEWAY)})
+
+   }
+
+}
+const uploadCoverPic = async (req,res)=>{
+   try {
+      if (req.files.lenght == 0 || !req.files) {
+         res.status(StatusCodes.BAD_REQUEST).json({massage:"invalied image"})
+      }else{
+         let allPics = []
+         for (let index = 0; index < req.files.length; index++) {
+            let imageURL =`${req.protocol}://${req.headers.host}/${req.files[index].path}`
+            allPics.push(imageURL)
+         }
+         let updateUser = await userModel.findByIdAndUpdate(req.user._id,{coverPics:allPics },{new:true})
+         res.status(202).json({massage:"succes updated",updateUser})
+      }
+   } catch (error) {
+      res.status(StatusCodes.BAD_GATEWAY).json({massage:"the serverr error",error,statusErr:getReasonPhrase(StatusCodes.BAD_GATEWAY)})
+
+   }
+
+}
+module.exports = {signUp,confirmPassword,signIn,updateName,uploadProfilePic,uploadCoverPic}
