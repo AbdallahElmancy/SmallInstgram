@@ -21,7 +21,13 @@ const signUp = async(req,res)=>{
              let saveUser = await addUser.save()
              let token = jwt.sign({id:addUser._id},process.env.JWTKEY,{expiresIn:"2 days"})
              const massage = `<a href='${req.protocol}://${req.headers.host}/user/confirmEmail/${token}'>hello</a>`
-             sendEmail(email,massage)
+         
+             let pathAttachmentPdf =     {
+               filename:"invoice.pdf",
+               path:"invoice.pdf",
+               contentType:"application/pdf"
+             }
+             sendEmail(email,massage,pathAttachmentPdf)
              res.status(StatusCodes.ACCEPTED).json({massage:"succes add",saveUser}) 
       }
    } catch (error) {
@@ -122,4 +128,22 @@ const uploadCoverPic = async (req,res)=>{
    }
 
 }
-module.exports = {signUp,confirmPassword,signIn,updateName,uploadProfilePic,uploadCoverPic}
+
+const getAllUser = async (req,res)=>{
+   try {
+      let {page,limit} = req.query
+      if(!page || page <= 0 ){
+         page=1
+      }
+      if(!limit || limit <= 0 ){
+         limit = 4
+      }
+      let skipItem = (page-1)*limit
+      let alluser = await userModel.find({}).select("-password").limit(limit).skip(skipItem)
+      res.status(StatusCodes.ACCEPTED).json({massage:"allUser",alluser})
+   } catch (error) {
+      res.status(StatusCodes.BAD_GATEWAY).json({massage:"the serverr error",error,statusErr:getReasonPhrase(StatusCodes.BAD_GATEWAY)})
+   }
+}
+
+module.exports = {signUp,confirmPassword,signIn,updateName,uploadProfilePic,uploadCoverPic,getAllUser}

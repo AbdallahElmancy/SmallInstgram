@@ -1,6 +1,6 @@
 const roles = {
-    Admin:"Admin",
-    User:"User",
+    Admin:"admin",
+    User:"user",
     HR:"HR"
 }
 const endPoints = {

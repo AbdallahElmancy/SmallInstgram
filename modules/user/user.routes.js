@@ -1,5 +1,5 @@
 const  router = require('express').Router();
-const {signUp,confirmPassword,signIn,updateName,uploadProfilePic,uploadCoverPic} = require("./controller/user.controller")
+const {signUp,confirmPassword,signIn,updateName,uploadProfilePic,uploadCoverPic,getAllUser} = require("./controller/user.controller")
 const {userValidation,singInValidation} = require('./userValidtion')
 const handelResult = require("../../middleware/validation")
 const {auth} = require("../../middleware/auth");
@@ -30,6 +30,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage,fileFilter }) 
 router.patch("/user/profilePic",auth(endPoints.updateName),userValidation[7] ,handelResult(),upload.single('avatar'),uploadProfilePic)
 router.patch("/user/coverPic",auth(endPoints.updateName),upload.array('avatar'),uploadCoverPic)
+router.get("/user/alluser",getAllUser)
 
 
 
